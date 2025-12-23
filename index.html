@@ -3,124 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI YouTube Thumbnail Architect (Gemini 3 + GPT-5)</title>
+    <title>Fixed YouTube Thumbnail Engine</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        :root { --yt-red: #ff0000; --bg: #0a0a0a; --card: #161616; --text: #e0e0e0; --accent: #00f2ff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        .container { max-width: 900px; margin: auto; background: var(--card); border-radius: 24px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #333; }
-        
-        #loader {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 999; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .circle { width: 70px; height: 70px; border: 6px solid #222; border-top: 6px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        :root { --yt-red: #ff0000; --bg: #0d0d0d; --card: #1a1a1a; --text: #f0f0f0; --accent: #00e676; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 15px; }
+        .container { max-width: 800px; margin: auto; background: var(--card); border-radius: 20px; padding: 30px; border: 1px solid #333; }
+        #loader { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #222; border-top: 5px solid var(--yt-red); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        h1 { text-align: center; color: #fff; font-size: 28px; margin-bottom: 5px; }
-        .engine-status { text-align: center; font-size: 11px; color: var(--accent); margin-bottom: 30px; letter-spacing: 1px; font-weight: bold; }
-        
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #aaa; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 16px; background: #000; border: 1px solid #444; border-radius: 12px; color: #fff; font-size: 15px; box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 10px rgba(0,242,255,0.2); }
-
-        .btn-container { display: flex; gap: 15px; margin-top: 30px; }
-        .gen-btn { flex: 2; background: var(--yt-red); color: white; border: none; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .gen-btn:hover { background: #cc0000; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,0,0,0.3); }
-
-        .result-area { margin-top: 40px; border-top: 1px solid #333; padding-top: 30px; }
-        .thumbnail-output { background: #000; padding: 20px; border-radius: 16px; border: 1px solid #444; display: flex; justify-content: center; align-items: center; min-height: 250px; }
-        .thumbnail-output img { max-width: 100%; height: auto; border-radius: 12px; border: 2px solid var(--accent); }
-        .copy-text { margin-top: 15px; font-size: 15px; color: var(--accent); text-align: center; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; }
+        label { display: block; margin-top: 15px; font-size: 11px; color: #888; text-transform: uppercase; font-weight: bold; }
+        input, textarea { width: 100%; padding: 15px; background: #000; border: 1px solid #444; border-radius: 10px; color: #fff; margin-top: 8px; box-sizing: border-box; }
+        .btn { background: var(--yt-red); color: #fff; border: none; padding: 18px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 20px; }
+        .result-area { margin-top: 30px; text-align: center; }
+        #thumbnailContainer img { width: 100%; max-width: 640px; border-radius: 12px; border: 3px solid #333; margin-top: 15px; }
+        .overlay-text { background: #222; padding: 10px; border-radius: 8px; color: var(--accent); font-weight: bold; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <div class="circle"></div>
-    <p id="loader-status" style="margin-top: 25px; color: var(--accent);">GPT-5: Crafting Thumbnail Vision...</p>
+    <div class="spinner"></div>
+    <p id="loader-status" style="margin-top: 20px; color: #fff;">Initializing Dual Engines...</p>
 </div>
 
 <div class="container">
-    <h1>YouTube Thumbnail Architect</h1>
-    <div class="engine-status">HYBRID ENGINE: VISUALS (GPT-5) + TEXT (GEMINI 3 PRO)</div>
+    <h2 style="text-align: center;">Thumbnail Architect (v2.5)</h2>
+    
+    <label>Target Topic</label>
+    <input type="text" id="topic" placeholder="e.g., iPhone 17 Pro Review">
 
-    <div class="form-group">
-        <label>Competitor Video URL (For Visual & Text Style Reference)</label>
-        <input type="text" id="compUrl" placeholder="Paste link of a viral video in your niche...">
-    </div>
+    <label>Competitor Reference URL</label>
+    <input type="text" id="refUrl" placeholder="Paste link of high-performing video...">
 
-    <div class="form-group">
-        <label>Your Video Topic / Core Idea</label>
-        <textarea id="myTopic" rows="3" placeholder="Describe your video content..."></textarea>
-    </div>
-
-    <button class="gen-btn" onclick="generateThumbnail()">GENERATE LANDSCAPE THUMBNAIL</button>
+    <button class="btn" onclick="buildThumbnail()">GENERATE THUMBNAIL</button>
 
     <div class="result-area">
-        <label>Generated High-CTR Thumbnail</label>
-        <div id="thumbnailOutput" class="thumbnail-output">Your stunning thumbnail will appear here.</div>
-        <div id="thumbnailText" class="copy-text">Thumbnail Text: Generating...</div>
+        <div id="thumbnailContainer"></div>
+        <div id="suggestedText" class="overlay-text" style="display:none;"></div>
     </div>
 </div>
 
 <script>
-    async function generateThumbnail() {
-        const url = document.getElementById('compUrl').value;
-        const topic = document.getElementById('myTopic').value;
+    async function buildThumbnail() {
+        const topic = document.getElementById('topic').value;
+        const refUrl = document.getElementById('refUrl').value;
         const loader = document.getElementById('loader');
         const status = document.getElementById('loader-status');
-        const thumbnailOutput = document.getElementById('thumbnailOutput');
-        const thumbnailTextDisplay = document.getElementById('thumbnailText');
+        const container = document.getElementById('thumbnailContainer');
 
-        if (!topic) return alert("Please enter your video topic!");
-
+        if (!topic) return alert("Please enter a topic!");
         loader.style.display = 'flex';
-        thumbnailOutput.innerHTML = ''; // Clear previous image
-        thumbnailTextDisplay.innerText = 'Thumbnail Text: Generating...';
+        container.innerHTML = "";
 
         try {
-            // STEP 1: Gemini 3 Pro - Generate thumbnail text
-            status.innerText = "Step 1: Gemini 3 Pro crafting viral thumbnail text...";
-            const geminiPrompt = `Analyze the competitor video (if provided: "${url}") and the topic "${topic}". 
-                                 Suggest 1-3 short, highly clickable text phrases for a YouTube thumbnail. 
-                                 Make it attention-grabbing and suitable for a landscape image. 
-                                 Output ONLY the text phrases, separated by " / ".`;
-
-            const geminiResponse = await puter.ai.chat(geminiPrompt, { model: 'gemini-3-pro-preview' });
-            const thumbnailText = geminiResponse.toString().trim();
-            thumbnailTextDisplay.innerText = `Thumbnail Text: ${thumbnailText}`;
-
-            // STEP 2: GPT-5 - Generate image description
-            status.innerText = "Step 2: GPT-5 visualizing the perfect landscape image...";
-            const gptPrompt = `Based on the video topic "${topic}" and visual style inspired by this URL (if provided): "${url}", 
-                                 create a detailed, single-paragraph description for a visually striking YouTube thumbnail. 
-                                 The image must be landscape, high-contrast, and immediately convey the video's value. 
-                                 Focus on strong foreground elements, clear subject, and engaging background. 
-                                 Describe exactly what the image should show, including colors, mood, and elements. 
-                                 Do NOT include any text in the image description.`;
-                                 
-            const gptResponse = await puter.ai.chat(gptPrompt, { model: 'gpt-5' });
-            const imageDescription = gptResponse.toString().trim();
-
-            // STEP 3: Generate the image
-            status.innerText = "Step 3: Generating the landscape thumbnail image...";
-            const generatedImage = await puter.ai.chat(
-                imageDescription, 
-                { model: 'stable-diffusion-3', response_type: 'image' } // Using a powerful image model
+            // STEP 1: Gemini 3 Pro - Generate the "Click-Bait" Text
+            status.innerText = "Gemini 3: Analyzing Viral Text Patterns...";
+            const textResponse = await puter.ai.chat(
+                `Suggest 3-4 words of bold, clickable text for a YouTube thumbnail about "${topic}". 
+                Reference competitor style: ${refUrl}. Output ONLY the words.`, 
+                { model: 'gemini-3-pro-preview' }
             );
-            
-            // Display the image
-            const imgElement = document.createElement('img');
-            imgElement.src = generatedImage;
-            thumbnailOutput.appendChild(imgElement);
+            const thumbText = textResponse.toString();
 
-            status.innerText = "Thumbnail Created!";
+            // STEP 2: GPT-5 - Write the Visual Prompt
+            status.innerText = "GPT-5: Engineering Hyper-Realistic Visual Prompt...";
+            const promptResponse = await puter.ai.chat(
+                `Describe a high-contrast, landscape YouTube thumbnail for: "${topic}". 
+                No text in the image. High saturation, bokeh background, 8k resolution.`,
+                { model: 'gpt-5' }
+            );
+            const visualPrompt = promptResponse.toString();
 
-        } catch (e) {
-            console.error(e);
-            alert("Error generating thumbnail. Please check your inputs and try again.");
+            // STEP 3: Puter Image Engine - Generate the File
+            status.innerText = "Rendering Landscape Image...";
+            const imageElement = await puter.ai.txt2img(visualPrompt, {
+                model: 'gpt-image-1.5', // OpenAI's latest image model for Puter
+                quality: 'high'
+            });
+
+            // Display results
+            container.appendChild(imageElement);
+            document.getElementById('suggestedText').innerText = "GEMINI TEXT OVERLAY: " + thumbText;
+            document.getElementById('suggestedText').style.display = "inline-block";
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
         } finally {
             loader.style.display = 'none';
         }
